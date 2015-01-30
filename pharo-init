@@ -1,0 +1,18 @@
+#!/bin/env bash
+
+readonly IMAGES_DIR='/home/julien/.pharo/imgs'
+readonly SRC_FILE='/home/julien/.pharo/sources/PharoV30.sources'
+
+init_directory(){
+    local directory_to_init="$(pwd)/$1"
+    local last_img_dir=$(ls -t1 $IMAGES_DIR | head -n 1)
+    if [ -d $directory_to_init ]; then
+        echo 'Directory already exists, aborting.'
+        exit -1
+    fi
+    mkdir $directory_to_init
+    cp $IMAGES_DIR/$last_img_dir/* $directory_to_init/
+    cp $SRC_FILE $directory_to_init/
+}
+
+init_directory $@
