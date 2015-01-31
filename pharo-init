@@ -14,28 +14,37 @@ Arguments:\n
 \t-v|--version - Set the version of pharo image to use.
 "
 
+log(){
+    echo "[pharo-init] $1"
+}
+
 init_directory_with_image(){
     local directory_to_init="$(pwd)/$1"
     local version=$2
     local img_dir=$3
     if [ -d $directory_to_init ]; then
-        echo 'Directory already exists, aborting.'
+        log 'Directory already exists, aborting.'
         exit -1
     fi
     if [ ! -d $IMAGES_DIR/$version/$img_dir ]; then
-        echo 'This image does not exists in the stock, aborting.'
+        log 'This image does not exists in the stock, aborting.'
         exit -1
     fi
-    mkdir $directory_to_init
-    cp $IMAGES_DIR/$version/$img_dir/* $directory_to_init/
-    cp $SRC_FILE $directory_to_init/
+    mkdir $directory_to_init && log "Directory $directory_to_init created."
+    cp $IMAGES_DIR/$version/$img_dir/* $directory_to_init/ && \
+    cp $SRC_FILE $directory_to_init/ && \
+    log "Directory $directory_to_init initialized correctly."
 }
 
 init_directory_with_lastest(){
     local version=$2
+    if [ ! -d $IMAGES_DIR/$version ]; then
+        log "There is no images for this version, aborting."
+        exit -1
+    fi
     local last_img_dir=$(ls -t1 $IMAGES_DIR/$version | head -n 1)
     if [ "$last_img_dir" = "" ]; then
-        echo 'Images stock seems to be empty, aborting.'
+        log 'Images stock seems to be empty, aborting.'
         exit -1
     fi
     init_directory_with_image $1 $2 $last_img_dir
@@ -63,7 +72,7 @@ case $key in
     if [ "$DIRECTORY_TO_INIT" = "" ]; then
         DIRECTORY_TO_INIT="$1"
     else
-        echo "Can not initialize multiple directories, aborting."
+        log "Can not initialize multiple directories, aborting."
         exit -1
     fi
     ;;
