@@ -1,18 +1,87 @@
 #!/bin/env bash
 
-readonly IMAGES_DIR='/home/julien/.pharo/imgs'
-readonly SRC_FILE='/home/julien/.pharo/sources/PharoV30.sources'
+readonly IMAGES_DIR=$HOME'/.pharo/imgs'
+readonly SRC_FILE=$HOME'/.pharo/sources/PharoV30.sources'
+readonly DEFAULT_VERSION='3'
+readonly HELP_MESSAGE="
+Initilize a directory with all the fresh stuff needed by Pharo.\n
+\n
+Usage: pharo-init [-i IMAGE_NUMBER] [-v IMAGE_VERSION] DIRECTORY_TO_CREATE\n
+\n
+Arguments:\n
+\t-h|--help    - Show this help message and exit.\n
+\t-i|--image   - Set the number of the image to use.\n
+\t-v|--version - Set the version of pharo image to use.
+"
 
-init_directory(){
+init_directory_with_image(){
     local directory_to_init="$(pwd)/$1"
-    local last_img_dir=$(ls -t1 $IMAGES_DIR | head -n 1)
+    local version=$2
+    local img_dir=$3
     if [ -d $directory_to_init ]; then
         echo 'Directory already exists, aborting.'
         exit -1
     fi
+    if [ ! -d $IMAGES_DIR/$version/$img_dir ]; then
+        echo 'This image does not exists in the stock, aborting.'
+        exit -1
+    fi
     mkdir $directory_to_init
-    cp $IMAGES_DIR/$last_img_dir/* $directory_to_init/
+    cp $IMAGES_DIR/$version/$img_dir/* $directory_to_init/
     cp $SRC_FILE $directory_to_init/
 }
 
-init_directory $@
+init_directory_with_lastest(){
+    local version=$2
+    local last_img_dir=$(ls -t1 $IMAGES_DIR/$version | head -n 1)
+    if [ "$last_img_dir" = "" ]; then
+        echo 'Images stock seems to be empty, aborting.'
+        exit -1
+    fi
+    init_directory_with_image $1 $2 $last_img_dir
+}
+
+main(){
+# Parsing arguments
+while [[ $# > 0 ]]; do
+key="$1"
+
+case $key in
+    -h|--help)
+    echo -e $HELP_MESSAGE
+    exit
+    ;;
+    -i|--image)
+    IMAGE="$2"
+    shift
+    ;;
+    -v|--version)
+    VERSION="$2"
+    shift
+    ;;
+    *)
+    if [ "$DIRECTORY_TO_INIT" = "" ]; then
+        DIRECTORY_TO_INIT="$1"
+    else
+        echo "Can not initialize multiple directories, aborting."
+        exit -1
+    fi
+    ;;
+esac
+shift
+done
+
+# Managing arguments
+if [ "$VERSION" = "" ]; then
+    VERSION="$DEFAULT_VERSION"
+fi
+
+if [ "$IMAGE" = "" ]; then
+    init_directory_with_lastest $DIRECTORY_TO_INIT $VERSION
+else
+    init_directory_with_image $DIRECTORY_TO_INIT $VERSION $IMAGE
+fi
+
+}
+
+main $@
