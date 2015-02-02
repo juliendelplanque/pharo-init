@@ -86,11 +86,12 @@ if [ "$VERSION" = "" ]; then
 fi
 
 if [ "$IMAGE" = "" ]; then
+    log "Creating workspace with latest image for Pharo $VERSION in \"$DIRECTORY_TO_INIT\"."
     init_directory_with_latest $DIRECTORY_TO_INIT $VERSION
 else
     init_directory_with_image $DIRECTORY_TO_INIT $VERSION $IMAGE
 fi
-
+log "Workspace ready."
 }
 
 main $@
